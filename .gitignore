@@ -1,0 +1,3 @@
+# Exclude Grunt files
+gruntfile.js
+package.json
