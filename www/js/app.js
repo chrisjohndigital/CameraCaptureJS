@@ -7,13 +7,13 @@ var ModelItem = Backbone.Model.extend({
 		supportsWebRTC: false,
 		supportsMediaRecorderAPI: false,
 		localStream: null,
-		cameraMaxWidth: 640,
-		cameraMaxHeight: 480,
+		cameraMaxWidth: 960,
+		cameraMaxHeight: 720,
 		includeAudio: false,
 		cameraScaleComplete: false,
 		prepRecording: false,
 		publishRecording: false,
-		errorMsgArray: ['<h1>WebRTC required - Sorry, unable to connect to camera</h1><p>Please ensure no other devices are using the camera and refresh the browser.</p><p><a href="https://developer.mozilla.org/en-US/docs/Web/Guide/API/WebRTC">More information about WebRTC</a></p>', '<h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API">Media Recorder API</a> unsupported, try Firefox</h2>'],
+		errorMsgArray: ['<h1>WebRTC required - Sorry, unable to connect to camera</h1><p>Please ensure no other devices are using the camera and refresh the browser.</p><p><a href="https://developer.mozilla.org/en-US/docs/Web/Guide/API/WebRTC">More information about WebRTC</a></p>', '<h2><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder_API">Media Recorder API</a> unsupported, try Firefox</h2>','Sorry, the recorder has stopped unexpectedly'],
 		mime: 'video/webm',
 		fileAddress: null,
 		fileLoad: false,
@@ -101,6 +101,9 @@ var MediaRecorderView = Backbone.View.extend({
     		};
 			this.recorder.onstop = function() {
         		viewReference.recorder = null;
+				if (viewReference.model.get('publishRecording')==true) {
+					alert (viewReference.model.get('errorMsgArray')[2]);
+				}
     		};
     		this.recorder.start();
 		} else {
@@ -242,18 +245,20 @@ var ScaleManager = Backbone.View.extend({
 		this.model.bind('change:scaleAssets', this.render, this);
   	},
 	render: function(){
+		console.log ($(this.el).width());
+		console.log ($(this.el).height());
 		if (this.validateDOM()==true) {
-			var maxHeight = ($(window).height()-$(this.el).find('.menu').height());
-			var scaleAmount = (((maxHeight*100)/this.model.get('cameraMaxHeight'))/100);
-			var viewReference = this;
-			this.$('video').each(function () {
-				if (maxHeight > viewReference.model.get('cameraMaxHeight')) {
-					viewReference.transformObject($(this), scaleAmount);
-				} else {
-					viewReference.transformObject($(this), 1);
-				}
-			});
-			this.$('video').parent().css('height', scaleAmount*this.model.get('cameraMaxHeight'));
+			var scaleAmount = 1;
+			if ($(window).width()<$(this.el).width()) {
+				scaleAmount = ((($(window).width()*100)/$(this.el).width())/100);
+				this.transformObject($(this.el), scaleAmount);
+			} else if ($(window).height()<$(this.el).height()) {
+				scaleAmount = ((($(window).height()*100)/$(this.el).height())/100);
+				this.transformObject($(this.el), scaleAmount);
+			} else {
+				scaleAmount = 1;
+				this.transformObject($(this.el), scaleAmount);
+			}
 		}
 	},
 	validateDOM: function () {
@@ -312,7 +317,7 @@ $(document).ready(function() {
   		});
 		var scaleManager = new ScaleManager({
 			model: modelItem,
-			el: $('body')
+			el: $('.container')
 		});
 		var cameraView = new CameraView({
 			model: modelItem,
