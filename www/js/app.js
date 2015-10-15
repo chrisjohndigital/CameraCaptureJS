@@ -7,6 +7,7 @@ var ModelItem = Backbone.Model.extend({
 		supportsWebRTC: false,
 		supportsMediaRecorderAPI: false,
 		localStream: null,
+		appHeight: 800,
 		cameraMaxWidth: 960,
 		cameraMaxHeight: 720,
 		includeAudio: false,
@@ -245,15 +246,19 @@ var ScaleManager = Backbone.View.extend({
 		this.model.bind('change:scaleAssets', this.render, this);
   	},
 	render: function(){
-		console.log ($(this.el).width());
-		console.log ($(this.el).height());
-		if (this.validateDOM()==true) {
+		if (this.validateDOM()==true && this.model.get('supportsWebRTC')==true) {
 			var scaleAmount = 1;
-			if ($(window).width()<$(this.el).width()) {
-				scaleAmount = ((($(window).width()*100)/$(this.el).width())/100);
+			if ($(window).width()<this.model.get('cameraMaxWidth')) {
+				scaleAmount = ((($(window).width()*100)/this.model.get('cameraMaxWidth'))/100);
+				if ((scaleAmount*this.model.get('appHeight'))>$(window).height()) {
+					scaleAmount = ((($(window).height()*100)/this.model.get('appHeight'))/100);
+				}
 				this.transformObject($(this.el), scaleAmount);
-			} else if ($(window).height()<$(this.el).height()) {
-				scaleAmount = ((($(window).height()*100)/$(this.el).height())/100);
+			} else if ($(window).height()<this.model.get('appHeight')) {
+				scaleAmount = ((($(window).height()*100)/this.model.get('appHeight'))/100);
+				if ((scaleAmount*this.model.get('cameraMaxWidth'))>$(window).width()) {
+					scaleAmount = ((($(window).width()*100)/this.model.get('cameraMaxWidth'))/100);
+				}
 				this.transformObject($(this.el), scaleAmount);
 			} else {
 				scaleAmount = 1;
