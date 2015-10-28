@@ -8,7 +8,7 @@ var ModelItem = Backbone.Model.extend({
 		supportsMediaRecorderAPI: false,
 		localStream: null,
 		appHeight: 800,
-		cameraMaxWidth: 960,
+		cameraMaxWidth: 1280,
 		cameraMaxHeight: 720,
 		includeAudio: false,
 		cameraScaleComplete: false,
@@ -18,7 +18,8 @@ var ModelItem = Backbone.Model.extend({
 		mime: 'video/webm',
 		fileAddress: null,
 		fileLoad: false,
-		scaleAssets: false
+		scaleAssets: false,
+		useMandatoryOptionalSyntax: true
     },
 	initialize: function(){
 		_.bindAll(this, 'featureSupport');
@@ -122,19 +123,28 @@ var MediaRecorderView = Backbone.View.extend({
 var CameraView = Backbone.View.extend({    
 	el: null,
    	initialize: function(){
-		_.bindAll(this, 'render', 'validateDOM', 'supportsWebRTC', 'readyFunction', 'handleCameraPublishing', 'handleCameraPrep');
+		_.bindAll(this, 'render', 'validateDOM', 'supportsWebRTC', 'adjustForBrowser', 'readyFunction', 'handleCameraPublishing', 'handleCameraPrep');
   	},
 	render: function(){
 		if (this.validateDOM()==true && this.supportsWebRTC()==true) {
+			this.adjustForBrowser();
 			var viewReference = this;
 			$(this.el).on('canplay', this.readyFunction);
-			var video_constraints = {
-				mandatory: {
-					maxHeight:  this.model.get ('cameraMaxHeight'),
-					maxWidth: this.model.get ('cameraMaxWidth') 
-					},
-				optional: []
-			};
+			if (this.model.get('useMandatoryOptionalSyntax')==true) {
+				var video_constraints = {
+					mandatory: {
+						minHeight:  this.model.get ('cameraMaxHeight'),
+						minWidth: this.model.get ('cameraMaxWidth'),
+						maxHeight:  this.model.get ('cameraMaxHeight'),
+						maxWidth: this.model.get ('cameraMaxWidth')
+					}
+				};
+			} else {
+				var video_constraints = {
+					width: { min: this.model.get ('cameraMaxWidth'), ideal: this.model.get ('cameraMaxWidth'), max: this.model.get ('cameraMaxWidth') },
+        			height: { min: this.model.get ('cameraMaxHeight'), ideal: this.model.get ('cameraMaxHeight'), max: this.model.get ('cameraMaxHeight') }
+				};
+			}
 			navigator.getMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 			navigator.getMedia (
 				// constraints
@@ -169,6 +179,12 @@ var CameraView = Backbone.View.extend({
 			return true;
 		} else {
 			return false;
+		}
+	},
+	adjustForBrowser: function () {
+		if (navigator.userAgent.indexOf("Firefox")!=-1) {
+			console.log ('Firefox');
+			this.model.set('useMandatoryOptionalSyntax', false)
 		}
 	},
 	readyFunction: function(event){
