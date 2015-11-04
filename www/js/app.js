@@ -10,6 +10,8 @@ var ModelItem = Backbone.Model.extend({
 		appHeight: 800,
 		cameraMaxWidth: 1280,
 		cameraMaxHeight: 720,
+        cameraMinWidth: 640,
+		cameraMinHeight: 480,
 		includeAudio: false,
 		cameraScaleComplete: false,
 		prepRecording: false,
@@ -133,16 +135,16 @@ var CameraView = Backbone.View.extend({
 			if (this.model.get('useMandatoryOptionalSyntax')==true) {
 				var video_constraints = {
 					mandatory: {
-						minHeight:  this.model.get ('cameraMaxHeight'),
-						minWidth: this.model.get ('cameraMaxWidth'),
+						minHeight:  this.model.get ('cameraMinHeight'),
+						minWidth: this.model.get ('cameraMinWidth'),
 						maxHeight:  this.model.get ('cameraMaxHeight'),
 						maxWidth: this.model.get ('cameraMaxWidth')
 					}
 				};
 			} else {
 				var video_constraints = {
-					width: { min: this.model.get ('cameraMaxWidth'), ideal: this.model.get ('cameraMaxWidth'), max: this.model.get ('cameraMaxWidth') },
-        			height: { min: this.model.get ('cameraMaxHeight'), ideal: this.model.get ('cameraMaxHeight'), max: this.model.get ('cameraMaxHeight') }
+					width: { min: this.model.get ('cameraMinWidth'), ideal: this.model.get ('cameraMaxWidth'), max: this.model.get ('cameraMaxWidth') },
+        			height: { min: this.model.get ('cameraMinHeight'), ideal: this.model.get ('cameraMaxHeight'), max: this.model.get ('cameraMaxHeight') }
 				};
 			}
 			navigator.getMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
