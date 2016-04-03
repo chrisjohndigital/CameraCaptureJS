@@ -53,7 +53,7 @@ var PlaybackView = Backbone.View.extend({
 				if (event.target.readyState == FileReader.DONE) {
 					$(viewReference.el).attr('src', event.target.result);
 					$(viewReference.el).attr('width', viewReference.model.get ('cameraMaxWidth'));
-					$(viewReference.el).attr('width', viewReference.model.get ('cameraMaxHeight'));
+					$(viewReference.el).attr('height', viewReference.model.get ('cameraMaxHeight'));
 					$(viewReference.el).css ('display', 'block');
 					viewReference.model.set ('scaleAssets', !viewReference.model.get ('scaleAssets'));
 				}
@@ -77,6 +77,7 @@ var MediaRecorderView = Backbone.View.extend({
 	el: null,
 	model: null,
 	recorder: null,
+	blobArray: [],
    	initialize: function(){
   		_.bindAll(this, 'render', 'publishRecording', 'recordStart', 'recordStop', 'readBlob');
 		this.model.bind('change:cameraScaleComplete', this.render, this);
@@ -92,21 +93,24 @@ var MediaRecorderView = Backbone.View.extend({
 		}
 	},
 	recordStart: function(){
+		this.blobArray = [];
 		if (this.model.get('localStream')!=null) {
 			this.recorder = new window.MediaRecorder(this.model.get('localStream'));
 			var viewReference = this;
 		  	this.recorder.ondataavailable = function(event) {
-				if (viewReference.recorder.state=="inactive") {
-					var blob = new window.Blob([event.data], {
-					  type: viewReference.model.get('mime')
-				  	});
-					viewReference.readBlob(blob);				
+				if (event.data.size > 0) {
+					viewReference.blobArray.push(event.data);
 				}
     		};
 			this.recorder.onstop = function() {
         		viewReference.recorder = null;
-				if (viewReference.model.get('publishRecording')==true) {
-					alert (viewReference.model.get('errorMsgArray')[2]);
+				if (viewReference.model.get ('publishRecording')==true) {
+                    alert (viewReference.model.get('errorMsgArray')[2]);
+                } else if (viewReference.blobArray.length > 0) {
+					var blob = new window.Blob(viewReference.blobArray, {
+					  type: viewReference.model.get('mime')
+				  	});
+					viewReference.readBlob(blob);
 				}
     		};
     		this.recorder.start();
