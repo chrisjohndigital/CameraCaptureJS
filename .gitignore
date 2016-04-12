@@ -2,3 +2,4 @@
 gruntfile.js
 package.json
 Thumbs.db
+node_modules/

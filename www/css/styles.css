@@ -3,11 +3,12 @@ body, h1, h2 {font-family:Helvetica,Arial,sans-serif; font-weight:normal; margin
 h1, h2 {background-color:#8ac007}
 
 .container{width:1280px; height:800px; margin:0px auto 0px auto; text-align:center; -ms-transform-origin:center top 0; -webkit-transform-origin:center top 0; transform-origin:center top 0; -webkit-transition: all 1s; -moz-transition: all 1s; -o-transition: all 1s; transition: all 1s}
-video {width:1280px; height:720px; margin:0px; padding:0px; float:left}
+video {width:1280px; height:720px; margin:0px; padding:0px; float:left; background-color:#F8F9F9}
 .cam-pulse{-webkit-animation:pulse 1s infinite; animation:pulse 1s infinite}
 #playback {display:none}
 
 .menu {width:1280px; height:80px; line-height:80px; margin:0px; padding:0px; float:left}
+.menu a {color:white}
 button {width:80px; height:80px; background-repeat:no-repeat; background-position:center; background-color:#f3f3f3; border:none; cursor:pointer; margin:auto; padding:0px; display:none}
 button:hover {background-color:black}
 #btn-rewind {background-image:url(../images/icon-rewind.png)}

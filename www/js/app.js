@@ -20,17 +20,18 @@ var ModelItem = Backbone.Model.extend({
 		mime: 'video/webm',
 		fileAddress: null,
 		fileLoad: false,
-		scaleAssets: false,
-		useMandatoryOptionalSyntax: true
+		scaleAssets: false
     },
 	initialize: function(){
 		_.bindAll(this, 'featureSupport');
 		this.featureSupport();
 	},
 	featureSupport: function(){
-		if (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia) {
-			this.set ('supportsWebRTC', true);
-		}
+		if (navigator.mediaDevices) {
+            if (navigator.mediaDevices.getUserMedia) {
+			 this.set ('supportsWebRTC', true);
+		  }
+        }
 		if (window.MediaRecorder && window.Blob && window.FileReader) {
 			this.set ('supportsMediaRecorderAPI',  true);
 		}
@@ -129,46 +130,24 @@ var MediaRecorderView = Backbone.View.extend({
 var CameraView = Backbone.View.extend({    
 	el: null,
    	initialize: function(){
-		_.bindAll(this, 'render', 'validateDOM', 'supportsWebRTC', 'adjustForBrowser', 'readyFunction', 'handleCameraPublishing', 'handleCameraPrep');
+		_.bindAll(this, 'render', 'validateDOM', 'supportsWebRTC', 'readyFunction', 'handleCameraPublishing', 'handleCameraPrep');
   	},
 	render: function(){
 		if (this.validateDOM()==true && this.supportsWebRTC()==true) {
-			this.adjustForBrowser();
 			var viewReference = this;
 			$(this.el).on('canplay', this.readyFunction);
-			if (this.model.get('useMandatoryOptionalSyntax')==true) {
-				var video_constraints = {
-					mandatory: {
-						minHeight:  this.model.get ('cameraMinHeight'),
-						minWidth: this.model.get ('cameraMinWidth'),
-						maxHeight:  this.model.get ('cameraMaxHeight'),
-						maxWidth: this.model.get ('cameraMaxWidth')
-					}
-				};
-			} else {
-				var video_constraints = {
-					width: { min: this.model.get ('cameraMinWidth'), ideal: this.model.get ('cameraMaxWidth'), max: this.model.get ('cameraMaxWidth') },
-        			height: { min: this.model.get ('cameraMinHeight'), ideal: this.model.get ('cameraMaxHeight'), max: this.model.get ('cameraMaxHeight') }
-				};
-			}
-			navigator.getMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-			navigator.getMedia (
-				// constraints
-				{
-					video: video_constraints,
-					audio: this.model.get('includeAudio')
-				},
-				// successCallback
-				function(localMediaStream) {
-					$(viewReference.el).attr('src', window.URL.createObjectURL(localMediaStream));
-					viewReference.model.set({localStream: localMediaStream });
-				},
-				// errorCallback
-				function(err) {
-					alert (err);
-					//Add error handling
-				}
-			);
+			var video_constraints = {
+				width: { min: this.model.get ('cameraMinWidth'), ideal: this.model.get ('cameraMaxWidth'), max: this.model.get ('cameraMaxWidth') },
+        		height: { min: this.model.get ('cameraMinHeight'), ideal: this.model.get ('cameraMaxHeight'), max: this.model.get ('cameraMaxHeight') }
+			};
+			var device = navigator.mediaDevices.getUserMedia({audio: this.model.get('includeAudio'), video: video_constraints});
+            device.then(function(mediaStream) {
+                $(viewReference.el).attr('src', window.URL.createObjectURL(mediaStream));
+				viewReference.model.set({localStream: mediaStream });
+            });
+            device.catch(function(err) {
+                alert (err);
+            });
 		} else {
 			$(this.el).parent().html(this.model.get('errorMsgArray')[0]);
 		}
@@ -185,12 +164,6 @@ var CameraView = Backbone.View.extend({
 			return true;
 		} else {
 			return false;
-		}
-	},
-	adjustForBrowser: function () {
-		if (navigator.userAgent.indexOf("Firefox")!=-1) {
-			console.log ('Firefox');
-			this.model.set('useMandatoryOptionalSyntax', false)
 		}
 	},
 	readyFunction: function(event){
